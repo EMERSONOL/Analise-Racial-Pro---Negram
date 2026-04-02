@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
-        /* PALETA DA INTERFACE */
         :root {
             --bg-color: #cfb7b1;
             --primary: #6b1c14;
@@ -24,11 +23,19 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; overflow: hidden; }
 
+        /* MARCA D'ÁGUA */
+        .negram-watermark {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 9998; opacity: 0.06;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='250' height='250'><text x='50%' y='50%' font-size='26' font-family='Arial' font-weight='900' fill='%23000' text-anchor='middle' alignment-baseline='middle' transform='rotate(-45 125 125)'>NEGRAM</text></svg>");
+            background-repeat: repeat; user-select: none; display: none;
+        }
+
         /* LOGIN */
         #login-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
-            display: flex; justify-content: center; align-items: center; z-index: 1000;
+            display: flex; justify-content: center; align-items: center; z-index: 10000;
         }
         .login-card {
             background: var(--card-bg); padding: 40px; border-radius: 15px;
@@ -39,145 +46,39 @@
         .input-group { margin-bottom: 15px; text-align: left; }
         .input-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; color: var(--primary); }
         .input-group input { width: 100%; padding: 10px; border: 1px solid var(--secondary); border-radius: 8px; font-size: 16px; outline: none; }
-        .input-group input:focus { border-color: var(--primary); box-shadow: 0 0 5px rgba(107, 28, 20, 0.3); }
-        .login-btn { width: 100%; padding: 12px; background-color: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.3s; font-weight: bold; }
-        .login-btn:hover { background-color: var(--accent); color: var(--primary); }
-        #login-error { color: var(--primary); font-size: 14px; margin-top: 10px; display: none; font-weight: bold; }
+        .login-btn { width: 100%; padding: 12px; background-color: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; }
 
         /* DASHBOARD */
         #dashboard { display: none; height: 100vh; display: flex; }
+        .sidebar { width: 320px; background: #f8f9fb; padding: 20px; overflow-y: auto; height: 100vh; border-right: 1px solid #e6e6e6; }
         
-        /* BARRA LATERAL */
-        .sidebar {
-            width: 320px; background: #f8f9fb; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            overflow-y: auto; height: 100vh; border-right: 1px solid #e6e6e6; display: flex; flex-direction: column;
-        }
-        
-        .upload-area { margin-bottom: 20px; }
-        .upload-area input[type="file"] { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #ccc; background: white; cursor: pointer; font-size: 13px; }
-
-        /* ESTILO DOS EXPANDERS CORRIGIDO */
-        details.st-expander {
-            background: white; 
-            border: 1px solid #e6e6e6; 
-            border-radius: 8px; 
-            margin-bottom: 15px; 
-            position: relative; /* Importante para z-index do dropdown flutuar */
-        }
-        details.st-expander summary {
-            padding: 12px 15px; 
-            font-weight: 500; 
-            font-size: 14px; 
-            cursor: pointer; 
-            color: #31333F;
-            display: block; /* Modificado de flex para block para evitar o esmagamento */
-            list-style: none; 
-            user-select: none; 
-            transition: background 0.2s;
-            outline: none;
-        }
-        details.st-expander summary::-webkit-details-marker { display: none; }
-        details.st-expander summary:hover { background-color: #f9f9f9; border-radius: 8px; }
-        details.st-expander summary::before {
-            content: '›'; 
-            font-size: 20px; 
-            margin-right: 10px; 
-            display: inline-block; 
-            transition: transform 0.2s;
-            vertical-align: middle;
-            line-height: 1;
-        }
+        details.st-expander { background: white; border: 1px solid #e6e6e6; border-radius: 8px; margin-bottom: 15px; position: relative; }
+        details.st-expander summary { padding: 12px 15px; font-weight: 500; font-size: 14px; cursor: pointer; color: #31333F; display: block; list-style: none; }
+        details.st-expander summary::before { content: '›'; font-size: 20px; margin-right: 10px; display: inline-block; transition: transform 0.2s; vertical-align: middle; }
         details.st-expander[open] summary::before { transform: rotate(90deg); }
-        
-        .expander-content { 
-            padding: 15px; 
-            border-top: 1px solid #e6e6e6; 
-            background: #ffffff; 
-            border-bottom-left-radius: 8px; 
-            border-bottom-right-radius: 8px; 
-        }
-        .expander-content label.sub-label { display: block; font-size: 13px; color: #31333F; margin-bottom: 8px; font-weight: 600; }
+        .expander-content { padding: 15px; border-top: 1px solid #e6e6e6; }
 
-        /* SELECTS PADRÃO */
-        select.st-select {
-            width: 100%; padding: 8px 10px; border-radius: 5px; border: 1px solid #ccc;
-            background: white; outline: none; font-size: 14px; color: #31333F; cursor: pointer;
-        }
-        select.st-select:focus { border-color: var(--st-red); }
+        /* MULTISELECT */
+        .ms-container { position: relative; width: 100%; }
+        .ms-box { min-height: 38px; border: 1px solid #ccc; border-radius: 5px; background: white; padding: 4px 30px 4px 8px; cursor: text; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; position: relative; }
+        .ms-chip { background-color: var(--st-red); color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; display: inline-flex; align-items: center; gap: 5px; }
+        .ms-dropdown { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: white; border: 1px solid #ccc; border-radius: 5px; z-index: 9999; display: none; max-height: 200px; flex-direction: column; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .ms-option { padding: 8px 12px; font-size: 13px; cursor: pointer; }
+        .ms-option:hover { background: var(--st-gray); }
 
-        /* CUSTOM MULTISELECT CORRIGIDO */
-        .ms-container { position: relative; font-family: sans-serif; width: 100%; }
-        .ms-box {
-            min-height: 38px; border: 1px solid #ccc; border-radius: 5px; background: white;
-            padding: 4px 30px 4px 8px; cursor: text; display: flex; flex-wrap: wrap; gap: 5px; align-items: center;
-            position: relative; transition: border-color 0.2s;
-        }
-        .ms-box.active { border-color: var(--st-red); box-shadow: 0 0 0 1px var(--st-red); }
-        
-        .ms-chip {
-            background-color: var(--st-red); color: white; padding: 2px 8px; border-radius: 4px;
-            font-size: 13px; display: inline-flex; align-items: center; gap: 5px; font-weight: 500;
-        }
-        .ms-chip .close-chip { cursor: pointer; display: inline-block; padding: 0 2px; font-weight: bold; }
-        .ms-chip .close-chip:hover { opacity: 0.7; }
-        
-        .ms-placeholder { color: #888; font-size: 14px; margin-left: 4px; pointer-events: none; }
-        
-        .ms-controls { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); display: flex; gap: 5px; align-items: center; color: #999; }
-        .ms-clear-all { cursor: pointer; font-size: 12px; display: none; padding: 2px; background: #eee; border-radius: 50%; width: 18px; height: 18px; text-align: center; line-height: 14px; }
-        .ms-clear-all:hover { background: #ccc; color: white; }
-        .ms-arrow { font-size: 10px; pointer-events: none; }
-
-        /* DROPBOX DO MULTISELECT FLUTUANTE */
-        .ms-dropdown {
-            position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: white; border: 1px solid #ccc;
-            border-radius: 5px; z-index: 9999; /* Força o menu a ficar por cima de tudo */
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15); display: none; max-height: 250px; flex-direction: column; overflow: hidden;
-        }
-        .ms-search { width: 100%; border: none; border-bottom: 1px solid #eee; padding: 10px; outline: none; font-size: 14px; }
-        .ms-options-list { overflow-y: auto; flex: 1; }
-        .ms-option { padding: 8px 12px; font-size: 14px; cursor: pointer; color: #31333F; }
-        .ms-option:hover { background-color: var(--st-gray); }
-        .ms-option.selected-opt { background-color: rgba(255, 75, 75, 0.1); color: var(--st-red); font-weight: bold; }
-
-        /* LEGENDA E BOTÃO SAIR */
-        #legenda-container { margin-top: 15px; padding: 15px; border-radius: 8px; border: 1px solid #e6e6e6; background-color: white; font-size: 13px; color: #31333F; }
-        .legenda-item { display: flex; align-items: center; margin-bottom: 6px; }
-        .legenda-cor { width: 16px; height: 16px; margin-right: 10px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
-        .btn-sair { margin-top: 20px; width: 100%; padding: 12px; background-color: transparent; border: 1px solid #ccc; border-radius: 8px; color: #666; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-sair:hover { background-color: #f9f9f9; color: var(--text-main); border-color: #999; }
-
-        /* ÁREA PRINCIPAL */
-        .main-content { flex: 1; display: flex; flex-direction: column; padding: 20px; overflow-y: auto; }
+        /* INTERFACE PRINCIPAL */
+        .main-content { flex: 1; display: flex; flex-direction: column; padding: 20px; overflow-y: auto; position: relative; }
         .header { margin-bottom: 20px; display: flex; align-items: center; gap: 15px; }
-        .header img { width: 50px; border-radius: 50%; border: 2px solid var(--primary); }
-        .header h2 { color: var(--primary); }
-        .header-titulo-cidade { font-size: 18px; color: var(--secondary); font-weight: normal; margin-left: auto;}
-        
         .metrics-container { display: flex; gap: 20px; margin-bottom: 20px; }
-        .metric-card {
-            background: var(--card-bg); flex: 1; padding: 20px; border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; border-bottom: 4px solid var(--secondary);
-        }
-        .metric-card h4 { color: #666; font-size: 13px; margin-bottom: 10px; text-transform: uppercase; font-weight: bold; }
-        .metric-card .value { font-size: 28px; font-weight: bold; color: var(--text-main); }
-        
-        /* MAPA E RANKING */
+        .metric-card { background: white; flex: 1; padding: 20px; border-radius: 10px; text-align: center; border-bottom: 4px solid var(--secondary); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .content-grid { display: flex; gap: 20px; flex: 1; min-height: 500px; }
-        #map { flex: 3; background: #e5e3df; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 2px solid #eee; }
-        .ranking {
-            flex: 1; background: var(--card-bg); padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            border-top: 4px solid var(--primary); overflow-y: auto;
-        }
-        .ranking h3 { color: var(--primary); margin-bottom: 15px; font-size: 16px; }
-        .rank-item { margin-bottom: 15px; }
-        .rank-item p { margin: 0 0 5px 0; font-size: 13px; font-weight: bold; color: var(--text-main); }
-        .progress-bar { width: 100%; background-color: #eee; border-radius: 5px; height: 8px; overflow: hidden; }
-        .progress-fill { height: 100%; background-color: var(--primary); transition: width 0.5s ease-in-out; }
-        .rank-percent { font-size: 11px; color: #666; margin-top: 2px; display: block;}
+        #map { flex: 3; border-radius: 10px; border: 1px solid #eee; z-index: 1; }
+        .ranking { flex: 1; background: white; padding: 20px; border-radius: 10px; border-top: 4px solid var(--primary); overflow-y: auto; }
     </style>
 </head>
 <body>
+
+    <div class="negram-watermark" id="wm"></div>
 
     <div id="login-screen">
         <div class="login-card">
@@ -185,14 +86,13 @@
             <h2>Analise Racial Pro</h2>
             <div class="input-group">
                 <label>E-mail</label>
-                <input type="email" id="email" placeholder="Digite seu e-mail">
+                <input type="email" id="email" value="negram.ippur.ufrj@gmail.com">
             </div>
             <div class="input-group">
                 <label>Senha</label>
-                <input type="password" id="password" placeholder="Digite sua senha">
+                <input type="password" id="password" value="negram_ufrj@">
             </div>
             <button class="login-btn" onclick="fazerLogin()">Entrar</button>
-            <p id="login-error">Credenciais incorretas.</p>
         </div>
     </div>
 
@@ -200,93 +100,69 @@
         <div class="sidebar">
             <h3 style="color: #31333F; margin-bottom: 20px; border-bottom: 2px solid #e6e6e6; padding-bottom: 10px;">⚙️ Filtros do Mapa</h3>
             
-            <div class="upload-area">
-                <label style="font-size: 13px; color: #31333F; font-weight: 600; display: block; margin-bottom: 8px;">📁 Carregar Dados (.geojson)</label>
-                <input type="file" id="upload-geojson" accept=".geojson,.json">
+            <div style="margin-bottom: 20px;">
+                <label style="font-size: 12px; font-weight: bold; color: #31333F;">📁 Upload GeoJSON</label>
+                <input type="file" id="upload-geojson" accept=".geojson,.json" style="width:100%; font-size:12px; margin-top:5px;">
             </div>
 
-            <details class="st-expander" open style="z-index: 3;">
+            <details class="st-expander" open>
                 <summary>🌍 Estilo Visual</summary>
                 <div class="expander-content">
-                    <label class="sub-label">Escolha o fundo</label>
-                    <select id="map-style" class="st-select" onchange="mudarFundoMapa()">
+                    <select id="map-style" onchange="mudarFundoMapa()" style="width:100%; padding:5px;">
                         <option value="cartodbpositron">Mapa Claro</option>
                         <option value="cartodbdark_matter">Mapa Escuro</option>
-                        <option value="satellite">Satélite (Híbrido)</option>
+                        <option value="satellite">Satélite</option>
                     </select>
                 </div>
             </details>
 
-            <details class="st-expander" open style="z-index: 4;">
+            <details class="st-expander" open>
                 <summary>📍 Localização</summary>
                 <div class="expander-content">
-                    <label class="sub-label">Município(s)</label>
-                    
                     <div class="ms-container" id="ms-container">
                         <div class="ms-box" id="ms-box" onclick="toggleDropdown()">
-                            <div id="ms-chips-area">
-                                <span class="ms-placeholder">Todos</span>
-                            </div>
-                            <div class="ms-controls">
-                                <span class="ms-clear-all" id="ms-clear" title="Limpar todos">✕</span>
-                                <span class="ms-arrow">▼</span>
-                            </div>
+                            <div id="ms-chips-area"><span style="color:#999; font-size:13px;">Todos</span></div>
                         </div>
-                        
                         <div class="ms-dropdown" id="ms-dropdown">
-                            <input type="text" class="ms-search" id="ms-search" placeholder="Buscar município..." onkeyup="filterOptions()" onclick="event.stopPropagation()">
-                            <div class="ms-options-list" id="ms-options-list">
-                                <div class="ms-option" style="color: #999; font-style: italic;">Carregue os dados primeiro...</div>
-                            </div>
+                            <input type="text" id="ms-search" placeholder="Filtrar..." onkeyup="filterOptions()" style="width:100%; padding:8px; border:none; border-bottom:1px solid #eee;">
+                            <div id="ms-options-list" style="overflow-y:auto;"></div>
                         </div>
                     </div>
                 </div>
             </details>
             
-            <details class="st-expander" open style="z-index: 2;">
+            <details class="st-expander" open>
                 <summary>📊 Camada Racial</summary>
                 <div class="expander-content">
-                    <label class="sub-label">Visualização</label>
-                    <select id="filtro-camada" class="st-select" onchange="atualizarDashboard()" disabled>
+                    <select id="filtro-camada" onchange="atualizarDashboard()" style="width:100%; padding:5px;">
                         <option value="brancas_5">Brancas: 5 Classes</option>
                         <option value="negras_5">Negras: 5 Classes</option>
                         <option value="limite_50">50% Negras/Brancos</option>
-                        <option value="limite_60">60% Negras/Brancos</option>
-                        <option value="limite_75">75% Negras/Brancos</option>
                     </select>
                 </div>
             </details>
 
-            <div id="legenda-container"></div>
-
-            <button class="btn-sair" onclick="fazerLogout()">Sair do Sistema</button>
+            <div id="legenda-container" style="background:white; padding:10px; border-radius:8px; border:1px solid #eee; font-size:12px;"></div>
+            <button onclick="location.reload()" style="width:100%; margin-top:20px; padding:10px; cursor:pointer; background:none; border:1px solid #ccc; border-radius:8px; color:#666;">Sair</button>
         </div>
 
         <div class="main-content">
             <div class="header">
                 <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyChRBvY3f-O5wID0-wYm2SyT3qkTuWWP8Jg&s" alt="Logo">
-                <h2>Painel de Análise - Projeto Negram</h2>
-                <h3 class="header-titulo-cidade" id="titulo-cidade">Aguardando dados...</h3>
+                <h2 style="color:var(--primary)">Painel de Análise - Emerson</h2>
+                <h3 id="titulo-cidade" style="margin-left:auto; font-weight:normal; color:var(--secondary)">Aguardando dados...</h3>
             </div>
 
             <div class="metrics-container">
-                <div class="metric-card">
-                    <h4>Média Brancos</h4>
-                    <div class="value" id="media-brancos">--%</div>
-                </div>
-                <div class="metric-card">
-                    <h4>Média Negras</h4>
-                    <div class="value" id="media-negras" style="color: var(--primary);">--%</div>
-                </div>
+                <div class="metric-card"><h4>Média Brancos</h4><div class="value" id="media-brancos">--%</div></div>
+                <div class="metric-card"><h4>Média Negras</h4><div class="value" id="media-negras" style="color:var(--primary)">--%</div></div>
             </div>
 
             <div class="content-grid">
                 <div id="map"></div>
                 <div class="ranking">
-                    <h3>🏆 Top Concentrações</h3>
-                    <div id="ranking-list">
-                        <p style="color: #999; font-size: 13px;">Carregue os dados.</p>
-                    </div>
+                    <h3 style="color:var(--primary); font-size:16px; margin-bottom:15px;">🏆 Top Concentrações</h3>
+                    <div id="ranking-list"></div>
                 </div>
             </div>
         </div>
@@ -294,282 +170,147 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // CORES
         const CORES_NEGRAS_5 = ['#ffffc1', '#fee08f', '#fda15f', '#f3624d', '#ca3351'];
         const CORES_BRANCAS_5 = ['#ffffd6', '#d2edc3', '#67c5d0', '#5699c6', '#515da9'];
         const COR_BRANCOS = '#1f3480';
         const COR_NEGROS = '#9d2417';
 
-        let mapaPrincipal;
-        let camadaBase;
-        let camadaGeoJSON = null;
-        let dadosGlobais = null; 
-        
-        let municipiosAtuais = [];
-        let selecoesMultiselect = [];
+        let mapaPrincipal, camadaBase, camadaGeoJSON = null, dadosGlobais = null;
+        let camadaSedes = null; // Camada das Prefeituras
+        let municipiosAtuais = [], selecoesMultiselect = [];
+
+        // ÍCONE PERSONALIZADO DA PREFEITURA
+        const iconePrefeitura = L.icon({
+            iconUrl: 'https://cdn-icons-png.freepik.com/256/15640/15640731.png',
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32]
+        });
 
         function fazerLogin() {
             if (document.getElementById('email').value === "negram.ippur.ufrj@gmail.com" && document.getElementById('password').value === "negram_ufrj@") {
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('dashboard').style.display = 'flex';
-                setTimeout(inicializarMapa, 200); 
-            } else { document.getElementById('login-error').style.display = 'block'; }
+                document.getElementById('wm').style.display = 'block';
+                setTimeout(() => {
+                    inicializarMapa();
+                    carregarSedesPrefeituras(); // Carrega automaticamente o arquivo das prefeituras
+                }, 200);
+            }
         }
-
-        function fazerLogout() { location.reload(); }
 
         function inicializarMapa() {
-            if (mapaPrincipal) return;
-            mapaPrincipal = L.map('map').setView([-22.9068, -43.1729], 10);
-            camadaBase = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; OpenStreetMap', subdomains: 'abcd', maxZoom: 20
-            }).addTo(mapaPrincipal);
+            mapaPrincipal = L.map('map').setView([-22.9068, -43.1729], 9);
+            camadaBase = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapaPrincipal);
         }
 
-        function mudarFundoMapa() {
-            const estilo = document.getElementById('map-style').value;
-            let url = estilo === 'satellite' ? 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}' : 
-                      `https://{s}.basemaps.cartocdn.com/${estilo === 'cartodbpositron' ? 'light' : 'dark'}_all/{z}/{x}/{y}{r}.png`;
-            camadaBase.setUrl(url);
+        // FUNÇÃO PARA CARREGAR AS SEDES MUNICIPAIS DO GITHUB/PASTA LOCAL
+        function carregarSedesPrefeituras() {
+            fetch('sedes_municipais_rj.json')
+                .then(response => response.json())
+                .then(data => {
+                    camadaSedes = L.geoJSON(data, {
+                        pointToLayer: (feature, latlng) => L.marker(latlng, {icon: iconePrefeitura}),
+                        onEachFeature: (feature, layer) => {
+                            layer.bindPopup(`
+                                <div style="font-family:sans-serif; line-height:1.4;">
+                                    <strong style="color:#6b1c14;">${feature.properties.nome}</strong><br>
+                                    <b>Cidade:</b> ${feature.properties.cidade}<br>
+                                    <b>Endereço:</b> ${feature.properties.endereco}<br>
+                                    <b>CEP:</b> ${feature.properties.cep}
+                                </div>
+                            `);
+                        }
+                    }).addTo(mapaPrincipal);
+                    
+                    // Adiciona controle de camada para o usuário poder ligar/desligar as prefeituras
+                    L.control.layers(null, {"Sedes das Prefeituras": camadaSedes}, {position: 'topright'}).addTo(mapaPrincipal);
+                })
+                .catch(err => console.log("Arquivo sedes_municipais_rj.json não encontrado ou erro na leitura."));
         }
 
+        // LÓGICA DE UPLOAD E DASHBOARD (Resumo das versões anteriores)
         document.getElementById('upload-geojson').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(evt) {
-                try {
-                    dadosGlobais = JSON.parse(evt.target.result);
-                    document.getElementById('filtro-camada').disabled = false;
-                    
-                    const setMun = new Set();
-                    dadosGlobais.features.forEach(f => { if(f.properties.NM_MUNICIP) setMun.add(f.properties.NM_MUNICIP); });
-                    municipiosAtuais = Array.from(setMun).sort();
-                    
-                    selecoesMultiselect = []; 
-                    renderizarOpcoesDropdown();
-                    atualizarVisualMultiselect();
-                    atualizarDashboard(); 
-                } catch (err) { alert("Erro ao ler o arquivo GeoJSON."); console.error(err); }
+            reader.onload = (evt) => {
+                dadosGlobais = JSON.parse(evt.target.result);
+                const setMun = new Set();
+                dadosGlobais.features.forEach(f => { if(f.properties.NM_MUNICIP) setMun.add(f.properties.NM_MUNICIP); });
+                municipiosAtuais = Array.from(setMun).sort();
+                selecoesMultiselect = [];
+                renderizarOpcoesDropdown();
+                atualizarDashboard();
             };
-            reader.readAsText(file);
+            reader.readAsText(e.target.files[0]);
         });
-
-        const msBox = document.getElementById('ms-box');
-        const msDropdown = document.getElementById('ms-dropdown');
-        const msChipsArea = document.getElementById('ms-chips-area');
-        const msClearBtn = document.getElementById('ms-clear');
-        const msSearch = document.getElementById('ms-search');
-
-        function toggleDropdown() {
-            if (municipiosAtuais.length === 0) return; 
-            const isAberto = msDropdown.style.display === 'flex';
-            if (isAberto) {
-                msDropdown.style.display = 'none';
-                msBox.classList.remove('active');
-            } else {
-                msDropdown.style.display = 'flex';
-                msBox.classList.add('active');
-                msSearch.value = '';
-                filterOptions();
-                msSearch.focus();
-            }
-        }
-
-        document.addEventListener('click', function(event) {
-            if (!document.getElementById('ms-container').contains(event.target)) {
-                msDropdown.style.display = 'none';
-                msBox.classList.remove('active');
-            }
-        });
-
-        function renderizarOpcoesDropdown() {
-            const list = document.getElementById('ms-options-list');
-            list.innerHTML = `<div class="ms-option" onclick="selecionarTodos(event)"><strong>Selecionar Tudo</strong></div>`;
-            
-            municipiosAtuais.forEach(mun => {
-                const isSelected = selecoesMultiselect.includes(mun);
-                const classeSel = isSelected ? 'selected-opt' : '';
-                list.innerHTML += `<div class="ms-option ${classeSel}" onclick="toggleMunicipio(event, '${mun}')">${mun}</div>`;
-            });
-        }
-
-        function filterOptions() {
-            const termo = msSearch.value.toLowerCase();
-            const list = document.getElementById('ms-options-list');
-            const options = list.querySelectorAll('.ms-option');
-            
-            options.forEach((opt, index) => {
-                if (index === 0) return; 
-                const txt = opt.innerText.toLowerCase();
-                opt.style.display = txt.includes(termo) ? 'block' : 'none';
-            });
-        }
-
-        function toggleMunicipio(event, mun) {
-            event.stopPropagation(); 
-            if (selecoesMultiselect.includes(mun)) {
-                selecoesMultiselect = selecoesMultiselect.filter(m => m !== mun);
-            } else {
-                selecoesMultiselect.push(mun);
-            }
-            renderizarOpcoesDropdown();
-            atualizarVisualMultiselect();
-            atualizarDashboard();
-        }
-
-        msClearBtn.addEventListener('click', function(event) {
-            event.stopPropagation(); 
-            selecoesMultiselect = [];
-            renderizarOpcoesDropdown();
-            atualizarVisualMultiselect();
-            atualizarDashboard();
-        });
-
-        function selecionarTodos(event) {
-            event.stopPropagation();
-            selecoesMultiselect = [];
-            renderizarOpcoesDropdown();
-            atualizarVisualMultiselect();
-            atualizarDashboard();
-        }
-
-        window.removerChip = function(event, mun) {
-            event.stopPropagation();
-            selecoesMultiselect = selecoesMultiselect.filter(m => m !== mun);
-            renderizarOpcoesDropdown();
-            atualizarVisualMultiselect();
-            atualizarDashboard();
-        };
-
-        function atualizarVisualMultiselect() {
-            if (selecoesMultiselect.length === 0) {
-                msChipsArea.innerHTML = '<span class="ms-placeholder">Todos</span>';
-                msClearBtn.style.display = 'none';
-            } else {
-                msChipsArea.innerHTML = '';
-                msClearBtn.style.display = 'block';
-                selecoesMultiselect.forEach(mun => {
-                    msChipsArea.innerHTML += `
-                        <div class="ms-chip">
-                            ${mun} <span class="close-chip" onclick="removerChip(event, '${mun}')">✕</span>
-                        </div>
-                    `;
-                });
-            }
-        }
 
         function atualizarDashboard() {
             if (!dadosGlobais) return;
-
-            const camadaSelecionada = document.getElementById('filtro-camada').value;
-
-            let featuresFiltradas = dadosGlobais.features;
-            let textoTitulo = "Todos os Municípios";
-
-            if (selecoesMultiselect.length > 0) {
-                featuresFiltradas = dadosGlobais.features.filter(f => selecoesMultiselect.includes(f.properties.NM_MUNICIP));
-                if (selecoesMultiselect.length <= 3) {
-                    textoTitulo = selecoesMultiselect.join(', ');
-                } else {
-                    textoTitulo = `${selecoesMultiselect.length} Municípios Selecionados`;
-                }
-            }
-            document.getElementById('titulo-cidade').innerText = textoTitulo;
-
-            let somaBrancos = 0, somaNegros = 0, qtd = 0;
-            featuresFiltradas.forEach(f => {
-                somaBrancos += parseFloat(f.properties['BRANCOS%'] || 0);
-                somaNegros += parseFloat(f.properties['NEGROS%'] || 0);
-                qtd++;
-            });
-            document.getElementById('media-brancos').innerText = qtd > 0 ? (somaBrancos / qtd).toFixed(1) + "%" : "0%";
-            document.getElementById('media-negras').innerText = qtd > 0 ? (somaNegros / qtd).toFixed(1) + "%" : "0%";
-
-            atualizarMapaELegenda(featuresFiltradas, camadaSelecionada);
-            atualizarRanking(featuresFiltradas, camadaSelecionada, selecoesMultiselect.length !== 1);
+            const camadaSel = document.getElementById('filtro-camada').value;
+            let filtrados = dadosGlobais.features;
+            if (selecoesMultiselect.length > 0) filtrados = filtrados.filter(f => selecoesMultiselect.includes(f.properties.NM_MUNICIP));
+            
+            document.getElementById('titulo-cidade').innerText = selecoesMultiselect.length > 0 ? selecoesMultiselect.join(', ') : "Todos os Municípios";
+            plotarMapa(filtrados, camadaSel);
+            gerarMetricasERanking(filtrados, camadaSel);
         }
 
-        function atualizarMapaELegenda(features, camada) {
+        function plotarMapa(features, camada) {
             if (camadaGeoJSON) mapaPrincipal.removeLayer(camadaGeoJSON);
-
-            const isBrancas = camada === 'brancas_5';
-            const isNegras = camada === 'negras_5';
-            const isLimite = camada.startsWith('limite_');
-            const valorLimite = isLimite ? parseInt(camada.split('_')[1]) : 0;
-
-            function definirEstilo(feature) {
-                let pBrancos = parseFloat(feature.properties['BRANCOS%'] || 0);
-                let pNegros = parseFloat(feature.properties['NEGROS%'] || 0);
-                let cor = 'transparent', opacidade = 0.75;
-
-                if (isBrancas || isNegras) {
-                    let valor = isBrancas ? pBrancos : pNegros;
-                    let paleta = isBrancas ? CORES_BRANCAS_5 : CORES_NEGRAS_5;
-                    
-                    if (valor <= 20) cor = paleta[0];
-                    else if (valor <= 40) cor = paleta[1];
-                    else if (valor <= 60) cor = paleta[2];
-                    else if (valor <= 80) cor = paleta[3];
-                    else cor = paleta[4];
-                } else if (isLimite) {
-                    opacidade = 0.85;
-                    if (pBrancos >= valorLimite) cor = COR_BRANCOS;
-                    else if (pNegros >= valorLimite) cor = COR_NEGROS;
-                }
-                let pesoBorda = cor === 'transparent' ? 0 : 0.5;
-                return { fillColor: cor, color: '#333333', weight: pesoBorda, fillOpacity: opacidade };
-            }
-
             camadaGeoJSON = L.geoJSON(features, {
-                style: definirEstilo,
-                onEachFeature: function(feature, layer) {
-                    let b = feature.properties.NM_BAIRRO || 'N/A';
-                    let m = feature.properties.NM_MUNICIP || 'N/A';
-                    let br = parseFloat(feature.properties['BRANCOS%'] || 0).toFixed(1);
-                    let ng = parseFloat(feature.properties['NEGROS%'] || 0).toFixed(1);
-                    layer.bindPopup(`<div style="font-family: Arial; font-size: 13px;"><strong>${b} (${m})</strong><br>Brancos: ${br}%<br>Negras: ${ng}%</div>`);
-                }
+                style: (f) => {
+                    let val = camada === 'brancas_5' ? f.properties['BRANCOS%'] : f.properties['NEGROS%'];
+                    let cores = camada === 'brancas_5' ? CORES_BRANCAS_5 : CORES_NEGRAS_5;
+                    let cor = val <= 20 ? cores[0] : val <= 40 ? cores[1] : val <= 60 ? cores[2] : val <= 80 ? cores[3] : cores[4];
+                    return {fillColor: cor, weight: 0.5, opacity: 1, color: 'white', fillOpacity: 0.7};
+                },
+                onEachFeature: (f, l) => l.bindPopup(`<b>${f.properties.NM_BAIRRO}</b><br>Negras: ${f.properties['NEGROS%']}%`)
             }).addTo(mapaPrincipal);
-
-            if (features.length > 0) mapaPrincipal.fitBounds(camadaGeoJSON.getBounds());
-
-            const divLegenda = document.getElementById('legenda-container');
-            let htmlLegenda = `<strong style="margin-bottom: 10px; display: block; font-size: 14px;">${isBrancas ? "População Branca" : isNegras ? "População Negras" : "Legenda de Cores"}</strong>`;
-            
-            if (isBrancas || isNegras) {
-                let paleta = isBrancas ? CORES_BRANCAS_5 : CORES_NEGRAS_5;
-                let faixas = ["0-20%", "20-40%", "40-60%", "60-80%", "80-100%"];
-                for (let i = 0; i < 5; i++) { htmlLegenda += `<div class="legenda-item"><div class="legenda-cor" style="background-color: ${paleta[i]};"></div>${faixas[i]}</div>`; }
-            } else if (isLimite) {
-                htmlLegenda += `<div class="legenda-item"><div class="legenda-cor" style="background-color: ${COR_BRANCOS};"></div>Brancos (${valorLimite}%+)</div>`;
-                htmlLegenda += `<div class="legenda-item"><div class="legenda-cor" style="background-color: ${COR_NEGROS};"></div>Negras (${valorLimite}%+)</div>`;
-            }
-            divLegenda.innerHTML = htmlLegenda;
+            mapaPrincipal.fitBounds(camadaGeoJSON.getBounds());
         }
 
-        function atualizarRanking(features, camada, mostrarMunicipio) {
-            const divRanking = document.getElementById('ranking-list');
+        function gerarMetricasERanking(features, camada) {
+            let sB = 0, sN = 0;
+            features.forEach(f => { sB += f.properties['BRANCOS%']; sN += f.properties['NEGROS%']; });
+            document.getElementById('media-brancos').innerText = (sB/features.length).toFixed(1) + "%";
+            document.getElementById('media-negras').innerText = (sN/features.length).toFixed(1) + "%";
+
             const rankCol = camada === 'brancas_5' ? 'BRANCOS%' : 'NEGROS%';
-            
-            let top5 = [...features].sort((a, b) => parseFloat(b.properties[rankCol] || 0) - parseFloat(a.properties[rankCol] || 0)).slice(0, 5);
-            divRanking.innerHTML = '';
-            
-            if (top5.length === 0) { divRanking.innerHTML = '<p>Sem dados.</p>'; return; }
-
+            let top5 = [...features].sort((a,b) => b.properties[rankCol] - a.properties[rankCol]).slice(0,5);
+            let html = '';
             top5.forEach(f => {
-                let b = f.properties.NM_BAIRRO || 'N/A', m = f.properties.NM_MUNICIP || '';
-                let val = parseFloat(f.properties[rankCol] || 0).toFixed(1);
-                let txt = mostrarMunicipio ? `${b} (${m})` : b;
-
-                divRanking.innerHTML += `
-                    <div class="rank-item">
-                        <p>${txt}</p>
-                        <div class="progress-bar"><div class="progress-fill" style="width: ${val}%; background-color: var(--primary);"></div></div>
-                        <span class="rank-percent">${val}%</span>
-                    </div>
-                `;
+                let v = f.properties[rankCol];
+                html += `<div style="margin-bottom:10px;"><p style="font-size:12px; font-weight:bold; margin:0;">${f.properties.NM_BAIRRO}</p>
+                        <div style="background:#eee; height:8px; border-radius:4px;"><div style="width:${v}%; background:var(--primary); height:100%; border-radius:4px;"></div></div>
+                        <span style="font-size:10px; color:#666;">${v}%</span></div>`;
             });
+            document.getElementById('ranking-list').innerHTML = html;
+        }
+
+        // UTILITÁRIOS MULTISELECT
+        function toggleDropdown() { document.getElementById('ms-dropdown').style.display = document.getElementById('ms-dropdown').style.display === 'flex' ? 'none' : 'flex'; }
+        function renderizarOpcoesDropdown() {
+            let html = `<div class="ms-option" onclick="selecoesMultiselect=[]; atualizarDashboard(); atualizarVisualMultiselect();"><b>Limpar Seleção</b></div>`;
+            municipiosAtuais.forEach(m => {
+                html += `<div class="ms-option" onclick="toggleMun('${m}')">${m}</div>`;
+            });
+            document.getElementById('ms-options-list').innerHTML = html;
+        }
+        function toggleMun(m) {
+            if (selecoesMultiselect.includes(m)) selecoesMultiselect = selecoesMultiselect.filter(i => i !== m);
+            else selecoesMultiselect.push(m);
+            atualizarVisualMultiselect();
+            atualizarDashboard();
+        }
+        function atualizarVisualMultiselect() {
+            let area = document.getElementById('ms-chips-area');
+            if (selecoesMultiselect.length === 0) area.innerHTML = '<span style="color:#999; font-size:13px;">Todos</span>';
+            else area.innerHTML = selecoesMultiselect.map(m => `<div class="ms-chip">${m}</div>`).join('');
+        }
+        function mudarFundoMapa() {
+            let s = document.getElementById('map-style').value;
+            let url = s === 'satellite' ? 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}' : `https://{s}.basemaps.cartocdn.com/${s === 'cartodbpositron'?'light':'dark'}_all/{z}/{x}/{y}{r}.png`;
+            camadaBase.setUrl(url);
         }
     </script>
 </body>
